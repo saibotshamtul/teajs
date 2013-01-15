@@ -1,0 +1,26 @@
+TeaJS - Your cup of server-side JavaScript
+==========================================
+
+TeaJS is a multi-purpose wrapper around V8 JS engine.
+
+For the most recent instructions, refer to the wiki page for this project: http://code.google.com/p/teajs/wiki
+
+
+1) Building 
+
+  - see http://code.google.com/p/teajs/wiki/Compiling
+
+2) Configuration
+
+  - see http://code.google.com/p/teajs/wiki/Manual and http://code.google.com/p/teajs/wiki/ApacheConfiguration
+
+3) Running
+
+  - ./tea example/example (using TeaJS built from source)
+  - tea example/example OR JUST example/example.js (using TeaJS installed from a package)
+  - tea.exe example/example (using TeaJS on Windows)
+
+4) Contact
+
+  - Forum: http://groups.google.com/group/teajs
+  - ondras@zarovi.cz
