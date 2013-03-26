@@ -4,13 +4,14 @@
  */
 
 #include "gc.h"
+#include "macros.h"
 
 /**
  * GC handler: executed when given object dies
  * @param {v8::Value} object
  * @param {void *} ptr Pointer to GC instance
  */
-void GC::handler(v8::Persistent<v8::Value> object, void * ptr) {
+void GC::handler(v8::Isolate * isolate, v8::Persistent<v8::Value> object, void * ptr) {
 	GC * gc = (GC *) ptr;
 	GC::objlist::iterator it = gc->data.begin();
 	GC::objlist::iterator end = gc->data.end();
@@ -26,8 +27,8 @@ void GC::handler(v8::Persistent<v8::Value> object, void * ptr) {
  * @param {char *} method Method name
  */
 void GC::add(v8::Handle<v8::Value> object, GC::dtor_t dtor) {
-	v8::Persistent<v8::Value> p = v8::Persistent<v8::Value>::New(object);
-	p.MakeWeak((void *) this, &handler);
+	v8::Persistent<v8::Value> p = PERSISTENT(v8::Value, object);
+	p.MakeWeak(v8::Isolate::GetCurrent(), (void *) this, &handler);
 	this->data.push_back(std::pair<v8::Persistent<v8::Value>, GC::dtor_t>(p, dtor));
 }
 
@@ -37,7 +38,7 @@ void GC::add(v8::Handle<v8::Value> object, GC::dtor_t dtor) {
 void GC::go(objlist::iterator it) {
 	dtor_t dtor = it->second;
 	dtor(it->first->ToObject());
-	it->first.Dispose();
+	it->first.Dispose(v8::Isolate::GetCurrent());
 	this->data.erase(it);
 }
 

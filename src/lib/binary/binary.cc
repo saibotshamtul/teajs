@@ -306,7 +306,7 @@ v8::Handle<v8::Value> Buffer_set(uint32_t index, v8::Local<v8::Value> value, con
 SHARED_INIT() {
 	v8::HandleScope handle_scope;
 	
-	bufferTemplate = v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New(_Buffer));
+	bufferTemplate = PERSISTENT_NEW(v8::FunctionTemplate, _Buffer);
 	bufferTemplate->SetClassName(JS_STR("Buffer"));
 	
 	v8::Handle<v8::ObjectTemplate> bufferPrototype = bufferTemplate->PrototypeTemplate();
@@ -325,5 +325,5 @@ SHARED_INIT() {
 	bufferObject->SetIndexedPropertyHandler(Buffer_get, Buffer_set);
 
 	exports->Set(JS_STR("Buffer"), bufferTemplate->GetFunction());
-	buffer = v8::Persistent<v8::Function>::New(bufferTemplate->GetFunction());
+	buffer = PERSISTENT(v8::Function, bufferTemplate->GetFunction());
 }

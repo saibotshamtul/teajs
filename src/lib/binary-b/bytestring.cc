@@ -102,7 +102,7 @@ v8::Handle<v8::Value> _get(uint32_t index, const v8::AccessorInfo &info) {
 } /* end namespace */
 
 void ByteString_init(v8::Handle<v8::FunctionTemplate> binaryTemplate) {
-	byteStringTemplate = v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New(_ByteString));
+	byteStringTemplate = PERSISTENT_NEW(v8::FunctionTemplate, _ByteString);
 	byteStringTemplate->Inherit(binaryTemplate);
 	byteStringTemplate->SetClassName(JS_STR("ByteString"));
 	
@@ -115,7 +115,7 @@ void ByteString_init(v8::Handle<v8::FunctionTemplate> binaryTemplate) {
 	byteStringPrototype->Set(JS_STR("slice"), v8::FunctionTemplate::New(_slice));
 	byteStringPrototype->Set(JS_STR("concat"), v8::FunctionTemplate::New(_concat));
 
-	byteString = v8::Persistent<v8::Function>::New(byteStringTemplate->GetFunction());
+	byteString = PERSISTENT(v8::Function, byteStringTemplate->GetFunction());
 }
 
 v8::Handle<v8::Function> ByteString_function() {

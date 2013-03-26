@@ -37,6 +37,10 @@
 #define JS_REFERENCE_ERROR(reason) JS_THROW(ReferenceError, reason)
 #define JS_RETHROW(tc) v8::Local<v8::Value>::New(tc.Exception());
 
+#define PERSISTENT(type, value) v8::Persistent<type>::New(v8::Isolate::GetCurrent(), value)
+#define PERSISTENT_NEW(type, value) PERSISTENT(type, type::New(value))
+#define PERSISTENT_NEW_EMPTY(type) PERSISTENT(type, type::New())
+
 #define JS_GLOBAL v8::Context::GetCurrent()->Global()
 #define GLOBAL_PROTO v8::Handle<v8::Object>::Cast(JS_GLOBAL->GetPrototype())
 #define APP_PTR reinterpret_cast<TeaJS_App *>(v8::Handle<v8::External>::Cast(GLOBAL_PROTO->GetInternalField(0))->Value())

@@ -50,6 +50,7 @@ protected:
 
 private:
 	/* current active context */
+	v8::Isolate * isolate;
 	v8::Persistent<v8::Context> context; 
 	
 	v8::Persistent<v8::Value> global;

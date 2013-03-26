@@ -378,7 +378,7 @@ SHARED_INIT() {
 	pt->Set("isEOF", v8::FunctionTemplate::New(_iseof));
 
 	exports->Set(JS_STR("File"), ft->GetFunction());			
-	file = v8::Persistent<v8::Function>::New(ft->GetFunction());
+	file = PERSISTENT(v8::Function, ft->GetFunction());
 	
 	v8::Handle<v8::FunctionTemplate> dt = v8::FunctionTemplate::New(_directory);
 	dt->SetClassName(JS_STR("Directory"));

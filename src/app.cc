@@ -46,7 +46,7 @@ JS_METHOD(_require) {
 JS_METHOD(_onexit) {
 	TeaJS_App * app = APP_PTR;
 	if (!args[0]->IsFunction()) { return JS_TYPE_ERROR("Non-function passed to onexit()"); }
-	v8::Persistent<v8::Function> fun = v8::Persistent<v8::Function>::New(v8::Handle<v8::Function>::Cast(args[0]));
+	v8::Persistent<v8::Function> fun = PERSISTENT(v8::Function, v8::Handle<v8::Function>::Cast(args[0]));
 	app->onexit.push_back(fun);
 	return v8::Undefined();
 }
@@ -75,6 +75,7 @@ void TeaJS_App::init() {
 	this->cfgfile = STRING(CONFIG_PATH);
 	this->show_errors = false;
 	this->exit_code = 0;
+	this->isolate = v8::Isolate::New();
 }
 
 /**
@@ -92,7 +93,7 @@ void TeaJS_App::prepare(char ** envp) {
 	g->Set(JS_STR("exit"), v8::FunctionTemplate::New(_exit)->GetFunction());
 	g->Set(JS_STR("global"), g);
 
-	this->paths = v8::Persistent<v8::Array>::New(v8::Array::New());
+	this->paths = PERSISTENT_NEW_EMPTY(v8::Array);
 
 	/* config file */
 	v8::Handle<v8::Object> config = this->require(path_normalize(this->cfgfile), path_getcwd());
@@ -113,7 +114,10 @@ void TeaJS_App::prepare(char ** envp) {
  * @param {char**} envp Environment
  */
 void TeaJS_App::execute(char ** envp) {
-	v8::Locker locker;
+	v8::Locker locker(this->isolate);
+	this->isolate->Enter();
+//	v8::Isolate::Scope iscope(isolate);
+
 	v8::HandleScope handle_scope;
 
 	std::string caught;
@@ -138,6 +142,7 @@ void TeaJS_App::execute(char ** envp) {
 	}
 	
 	this->finish();
+	this->isolate->Exit();
 	
 	if (caught.length()) { throw caught; } /* rethrow */
 }
@@ -152,7 +157,7 @@ void TeaJS_App::finish() {
 	/* user callbacks */
 	for (unsigned int i=0; i<this->onexit.size(); i++) {
 		this->onexit[i]->Call(JS_GLOBAL, 0, NULL);
-		this->onexit[i].Dispose();
+		this->onexit[i].Dispose(v8::Isolate::GetCurrent());
 		this->onexit[i].Clear();
 	}
 	this->onexit.clear();
@@ -381,11 +386,11 @@ void TeaJS_App::create_context() {
 	v8::HandleScope handle_scope;
 	
 	if (this->global.IsEmpty()) { /* first time */
-		this->globalt = v8::Persistent<v8::ObjectTemplate>::New(v8::ObjectTemplate::New());
+		this->globalt = PERSISTENT_NEW_EMPTY(v8::ObjectTemplate);
 		this->globalt->SetInternalFieldCount(2);
 		this->context = v8::Context::New(NULL, this->globalt);
 		this->context->Enter();
-		this->global = v8::Persistent<v8::Value>::New(JS_GLOBAL);
+		this->global = PERSISTENT(v8::Value, JS_GLOBAL);
 	} else { /* Nth time */
 #ifdef REUSE_CONTEXT
 		this->context->Enter();
@@ -406,7 +411,7 @@ void TeaJS_App::create_context() {
 void TeaJS_App::delete_context() {
 	this->context->Exit();
 #ifndef REUSE_CONTEXT
-	this->context.Dispose();
+	this->context.Dispose(v8::Isolate::GetCurrent());
 	this->context.Clear();
 #endif
 }

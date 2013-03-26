@@ -54,7 +54,7 @@ void Cache::erase(std::string filename) {
 	
 	ScriptValue::iterator it3 = scripts.find(filename);
 	if (it3 != scripts.end()) { 
-		it3->second.Dispose();
+		it3->second.Dispose(v8::Isolate::GetCurrent());
 		scripts.erase(it3); 
 	}
 }
@@ -168,7 +168,7 @@ v8::Handle<v8::Script> Cache::getScript(std::string filename) {
 		v8::Handle<v8::Script> script = v8::Script::New(JS_STR(source.c_str()), JS_STR(filename.c_str()));
 		if (!script.IsEmpty()) {
 			this->mark(filename); /* mark as cached */
-			v8::Persistent<v8::Script> result = v8::Persistent<v8::Script>::New(script);
+			v8::Persistent<v8::Script> result = PERSISTENT(v8::Script, script);
 			scripts[filename] = result;
 			return result;
 		}
@@ -201,7 +201,7 @@ void Cache::addExports(std::string filename, v8::Handle<v8::Object> obj) {
 #ifdef VERBOSE
 		printf("[addExports] caching exports for '%s'\n", filename.c_str()); 
 #endif	
-	exports[filename] = v8::Persistent<v8::Object>::New(obj);
+	exports[filename] = PERSISTENT(v8::Object, obj);
 }
 
 /**
@@ -213,7 +213,7 @@ void Cache::removeExports(std::string filename) {
 #endif	
 	ExportsValue::iterator it = exports.find(filename);
 	if (it != exports.end()) { 
-		it->second.Dispose();
+		it->second.Dispose(v8::Isolate::GetCurrent());
 		it->second.Clear();
 		exports.erase(it);
 	}
@@ -225,7 +225,7 @@ void Cache::removeExports(std::string filename) {
 void Cache::clearExports() {
 	ExportsValue::iterator it;
 	for (it=exports.begin(); it != exports.end(); it++) {
-		it->second.Dispose();
+		it->second.Dispose(v8::Isolate::GetCurrent());
 		it->second.Clear();
 	}
 	exports.clear();
