@@ -173,7 +173,7 @@ void _length(v8::Local<v8::String> property, v8::Local<v8::Value> value, const v
 } /* end namespace */
 
 void ByteArray_init(v8::Handle<v8::FunctionTemplate> binaryTemplate) {
-	byteArrayTemplate = v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New(_ByteArray));
+	byteArrayTemplate = PERSISTENT_NEW(v8::FunctionTemplate, _ByteArray);
 	byteArrayTemplate->Inherit(binaryTemplate);
 	byteArrayTemplate->SetClassName(JS_STR("ByteArray"));
 
@@ -193,7 +193,7 @@ void ByteArray_init(v8::Handle<v8::FunctionTemplate> binaryTemplate) {
 	byteArrayPrototype->Set(JS_STR("reverse"), v8::FunctionTemplate::New(_reverse));
 	byteArrayPrototype->Set(JS_STR("concat"), v8::FunctionTemplate::New(_concat));
 
-	byteArray = v8::Persistent<v8::Function>::New(byteArrayTemplate->GetFunction());
+	byteArray = PERSISTENT(v8::Function, byteArrayTemplate->GetFunction());
 }
 
 v8::Handle<v8::Function> ByteArray_function() {

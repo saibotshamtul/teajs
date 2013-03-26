@@ -83,7 +83,7 @@ JS_METHOD(_getpid) {
 JS_METHOD(_sleep) {
 	int num = args[0]->Int32Value();
 	{
-		v8::Unlocker unlocker;
+		v8::Unlocker unlocker(v8::Isolate::GetCurrent());
 		sleep(num);
 	}
 	return v8::Undefined();
@@ -138,18 +138,18 @@ void setup_system(v8::Handle<v8::Object> global, char ** envp, std::string mainf
 	}
 	system->Set(JS_STR("args"), arr);
 
-	js_stdin = v8::Persistent<v8::Function>::New(v8::FunctionTemplate::New(_read)->GetFunction());
+	js_stdin = PERSISTENT(v8::Function, v8::FunctionTemplate::New(_read)->GetFunction());
 	system->Set(JS_STR("stdin"), js_stdin);
 	js_stdin->Set(JS_STR("read"), js_stdin);
 	js_stdin->Set(JS_STR("readLine"), v8::FunctionTemplate::New(_readline)->GetFunction());
 
-	js_stdout = v8::Persistent<v8::Function>::New(v8::FunctionTemplate::New(_write_stdout)->GetFunction());
+	js_stdout = PERSISTENT(v8::Function, v8::FunctionTemplate::New(_write_stdout)->GetFunction());
 	system->Set(JS_STR("stdout"), js_stdout);
 	js_stdout->Set(JS_STR("write"), js_stdout);
 	js_stdout->Set(JS_STR("writeLine"), v8::FunctionTemplate::New(_writeline_stdout)->GetFunction());
 	js_stdout->Set(JS_STR("flush"), v8::FunctionTemplate::New(_flush_stdout)->GetFunction());
 
-	js_stderr = v8::Persistent<v8::Function>::New(v8::FunctionTemplate::New(_write_stderr)->GetFunction());
+	js_stderr = PERSISTENT(v8::Function, v8::FunctionTemplate::New(_write_stderr)->GetFunction());
 	system->Set(JS_STR("stderr"), js_stderr);
 	js_stderr->Set(JS_STR("write"), js_stderr);
 	js_stderr->Set(JS_STR("writeLine"), v8::FunctionTemplate::New(_writeline_stderr)->GetFunction());

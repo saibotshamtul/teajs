@@ -18,7 +18,7 @@ public:
 	typedef std::list<std::pair<v8::Persistent<v8::Value>, dtor_t> > objlist;
 
 	/* this method is called by V8 when persistent handle gets weak */
-	static void handler(v8::Persistent<v8::Value> object, void * ptr);
+	static void handler(v8::Isolate * isolate, v8::Persistent<v8::Value> object, void * ptr);
 
 	/* objects subscribe by calling this method */
 	virtual void add(v8::Handle<v8::Value> object, dtor_t);

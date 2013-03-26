@@ -355,7 +355,7 @@ JS_METHOD(_select) {
 	int ret;
 	
 	{
-		v8::Unlocker unlocker;
+		v8::Unlocker unlocker(v8::Isolate::GetCurrent());
 		while (1) {
 			ret = select(max+1, &fds[0], &fds[1], &fds[2], tv);
 			if (ret != SOCKET_ERROR || sock_errno != EINTR) { break; }
@@ -642,7 +642,7 @@ SHARED_INIT() {
 	WSAStartup(wVersionRequested, &wsaData);
 #endif
 
-	socketTemplate = v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New(_socket)); 
+	socketTemplate = PERSISTENT_NEW(v8::FunctionTemplate, _socket); 
 	socketTemplate->SetClassName(JS_STR("Socket"));
 
 	/**
@@ -689,5 +689,5 @@ SHARED_INIT() {
 	pt->Set("getPeerName", v8::FunctionTemplate::New(_getpeername));
 
 	exports->Set(JS_STR("Socket"), socketTemplate->GetFunction());
-	socketFunc = v8::Persistent<v8::Function>::New(socketTemplate->GetFunction());
+	socketFunc = PERSISTENT(v8::Function, socketTemplate->GetFunction());
 }

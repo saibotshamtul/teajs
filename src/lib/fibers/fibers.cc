@@ -134,9 +134,9 @@ void* runJsFunc(void* opaque_native_data) {
   EXIT_ON_ERROR(status, "Failed to delete condition_mutex");
   status = pthread_cond_destroy(&native_data->condition);
   EXIT_ON_ERROR(status, "Failed to delete condition");
-  native_data->js_fiber.Dispose();
-  native_data->func.Dispose();
-  native_data->context.Dispose();
+  native_data->js_fiber.Dispose(v8::Isolate::GetCurrent());
+  native_data->func.Dispose(v8::Isolate::GetCurrent());
+  native_data->context.Dispose(v8::Isolate::GetCurrent());
   delete native_data;
 
   return NULL;
@@ -178,10 +178,9 @@ JS_METHOD(_Fiber) {
   status = pthread_cond_init(&native_data->condition, NULL);
   RETURN_ON_ERROR(status, "Failed to create condition");
 
-  native_data->js_fiber = v8::Persistent<v8::Object>::New(args.This());
-  native_data->func = v8::Persistent<v8::Value>::New(func);
-  native_data->context = v8::Persistent<v8::Context>::New(
-      v8::Context::GetCurrent());
+  native_data->js_fiber = PERSISTENT(v8::Object, args.This());
+  native_data->func = PERSISTENT(v8::Value, func);
+  native_data->context = PERSISTENT(v8::Context, v8::Context::GetCurrent());
 
   native_data->js_fiber->Set(JS_STR("name"), v8::String::New(name.c_str()));
 
@@ -296,7 +295,7 @@ JS_METHOD(_suspend) {
     // another thread can't signal the mutex before we wait on
     // it. (Note: pthread_cond_wait releases the mutex until it
     // returns.)
-    v8::Unlocker unlocker;
+    v8::Unlocker unlocker(v8::Isolate::GetCurrent());
     FIBER_LOG("fiber '%s': suspending, released v8 lock\n", native_data->name.c_str());
     pthread_cond_wait(&native_data->condition, &native_data->condition_mutex);
     pthread_mutex_unlock(&native_data->condition_mutex);
@@ -324,7 +323,7 @@ JS_METHOD(_join) {
   }
 
   {
-    v8::Unlocker unlocker;
+    v8::Unlocker unlocker(v8::Isolate::GetCurrent());
     FIBER_LOG("fiber '%s': joining\n", native_data->name.c_str());
     pthread_join(native_data->thread, NULL);
     FIBER_LOG("fiber '%s': finished joining\n", native_data->name.c_str());
@@ -357,7 +356,7 @@ SHARED_INIT() {
   v8::Local<v8::Function> f = ft->GetFunction();
 
   v8::Local<v8::Object> main = f->NewInstance();
-  js_fiber_class = v8::Persistent<v8::Object>::New(f);
+  js_fiber_class = PERSISTENT(v8::Object, f);
   become_main(main);
   f->Set(JS_STR("_getCurrentFiber"), v8::FunctionTemplate::New(_getCurrentFiber)->GetFunction());
   f->Set(JS_STR("allRunningFibers"), v8::FunctionTemplate::New(_allRunningFibers)->GetFunction());

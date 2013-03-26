@@ -380,7 +380,7 @@ JS_METHOD(_loadConnection) {
 
 SHARED_INIT() {
 	v8::HandleScope handle_scope;
-	mysqlt = v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New(_mysql));
+	mysqlt = PERSISTENT_NEW(v8::FunctionTemplate, _mysql);
 	mysqlt->SetClassName(JS_STR("MySQL"));
 
 	v8::Handle<v8::ObjectTemplate> ot = mysqlt->InstanceTemplate();
@@ -411,7 +411,7 @@ SHARED_INIT() {
 	pt->Set(JS_STR("qualify"), v8::FunctionTemplate::New(_qualify));
 	pt->Set(JS_STR("insertId"), v8::FunctionTemplate::New(_insertid));
 	
-	rest = v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New(_result));
+	rest = PERSISTENT_NEW(v8::FunctionTemplate, _result);
 	rest->SetClassName(JS_STR("Result"));
 	
 	v8::Handle<v8::ObjectTemplate> resinst = rest->InstanceTemplate();

@@ -218,7 +218,7 @@ SHARED_INIT() {
 	pt->Set(JS_STR("changes"), v8::FunctionTemplate::New(_changes));
 	pt->Set(JS_STR("insertId"), v8::FunctionTemplate::New(_insertid));
 	
-	rest = v8::Persistent<v8::FunctionTemplate>::New(v8::FunctionTemplate::New(_result));
+	rest = PERSISTENT_NEW(v8::FunctionTemplate, _result);
 	rest->SetClassName(JS_STR("Result"));
 	
 	v8::Handle<v8::ObjectTemplate> resinst = rest->InstanceTemplate();
